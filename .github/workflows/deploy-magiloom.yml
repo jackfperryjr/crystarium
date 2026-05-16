@@ -1,4 +1,4 @@
-name: Deploy Magiloom Web
+name: magiloom
 
 on:
   push:
