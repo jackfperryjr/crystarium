@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import type { Clip } from '@/lib/types'
+import { domainHue } from '@/lib/utils'
 import KnowledgeGraph from './KnowledgeGraph'
 import ClipPanel from './ClipPanel'
+import AddPanel from './AddPanel'
 
 function MoonIcon() {
   return (
@@ -32,30 +34,61 @@ function GemIcon({ fill }: { fill: string }) {
   )
 }
 
-function Legend({ isDark }: { isDark: boolean }) {
+function Legend({ clips, isDark }: { clips: Clip[]; isDark: boolean }) {
   const text = isDark ? 'text-white/25' : 'text-gray-500'
   const line = isDark ? 'border-blue-400/30' : 'border-blue-600/50'
-  const gemFill = isDark ? 'rgba(129,140,248,0.55)' : 'rgba(79,70,229,0.7)'
+  const lightness = isDark ? 68 : 45
+
+  const domains = [...clips
+    .filter(c => c.domain)
+    .reduce((acc, c) => {
+      acc.set(c.domain!, (acc.get(c.domain!) ?? 0) + 1)
+      return acc
+    }, new Map<string, number>())
+    .entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([d]) => d)
+
   return (
-    <div className="absolute bottom-5 right-5 z-10 pointer-events-none flex flex-col gap-1.5 items-end">
+    <div className="absolute bottom-5 right-5 z-10 pointer-events-none flex flex-col gap-1 items-end">
+      {domains.map(domain => (
+        <div key={domain} className={`flex items-center gap-2 ${text}`}>
+          <span className="text-[10px]">{domain}</span>
+          <GemIcon fill={`hsl(${domainHue(domain)}, 65%, ${lightness}%)`} />
+        </div>
+      ))}
+      {domains.length > 0 && <div className="h-px w-16 my-0.5" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' }} />}
       <div className={`flex items-center gap-2 ${text}`}>
-        <span className="text-[10px]">clip — color indicates domain</span>
-        <GemIcon fill={gemFill} />
-      </div>
-      <div className={`flex items-center gap-2 ${text}`}>
-        <span className="text-[10px]">line — semantic similarity ≥ 70%</span>
+        <span className="text-[10px]">similarity ≥ 70%</span>
         <span className={`w-4 border-t flex-shrink-0 ${line}`} />
       </div>
     </div>
   )
 }
 
+type RecencyDays = null | 7 | 30
+
 export default function GraphPage() {
   const [clips, setClips] = useState<Clip[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [selectedClip, setSelectedClip] = useState<Clip | null>(null)
+  const [showAdd, setShowAdd] = useState(false)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [isDark, setIsDark] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [alwaysShowLabels, setAlwaysShowLabels] = useState(false)
+  const [recencyDays, setRecencyDays] = useState<RecencyDays>(null)
+
+  const fetchClips = async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('clips')
+      .select('id, url, title, domain, favicon_url, summary, entities, embedding, created_at')
+      .order('created_at', { ascending: false })
+    if (!error && data) setClips(data as Clip[])
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem('crystarium-dark')
@@ -65,20 +98,41 @@ export default function GraphPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUserEmail(user?.email ?? null)
     })
-    supabase
-      .from('clips')
-      .select('id, url, title, domain, favicon_url, summary, entities, embedding, created_at')
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (!error && data) setClips(data as Clip[])
-        setLoading(false)
-      })
+    fetchClips().finally(() => setLoading(false))
   }, [])
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await fetchClips()
+    setRefreshing(false)
+  }
+
+  const handleNodeClick = (clip: Clip) => {
+    setShowAdd(false)
+    setSelectedClip(clip)
+  }
+
+  const openAdd = () => {
+    setSelectedClip(null)
+    setShowAdd(true)
+  }
 
   const toggleDark = () => {
     const next = !isDark
     setIsDark(next)
     localStorage.setItem('crystarium-dark', String(next))
+  }
+
+  const handleDelete = async (clipId: string) => {
+    setClips(prev => prev.filter(c => c.id !== clipId))
+    setSelectedClip(null)
+    const supabase = createClient()
+    const { error } = await supabase.from('clips').delete().eq('id', clipId)
+    if (error) fetchClips()
+  }
+
+  const cycleRecency = () => {
+    setRecencyDays(prev => prev === null ? 7 : prev === 7 ? 30 : null)
   }
 
   const handleSignOut = async () => {
@@ -87,17 +141,35 @@ export default function GraphPage() {
     window.location.href = '/login'
   }
 
-  const headerBg  = isDark ? 'bg-black/30 border-white/5'       : 'bg-white/85 border-gray-200'
-  const logoText  = isDark ? 'text-white/40'                    : 'text-gray-500'
-  const titleText = isDark ? 'text-white'                       : 'text-gray-900'
-  const countText = isDark ? 'text-white/20'                    : 'text-gray-400'
+  const headerBg  = isDark ? 'bg-black/30 border-white/5'        : 'bg-white/85 border-gray-200'
+  const logoText  = isDark ? 'text-white/40'                     : 'text-gray-500'
+  const titleText = isDark ? 'text-white'                        : 'text-gray-900'
+  const countText = isDark ? 'text-white/20'                     : 'text-gray-400'
   const btnText   = isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-500 hover:text-gray-800'
-  const emailText = isDark ? 'text-white/20'                    : 'text-gray-400'
+  const emailText = isDark ? 'text-white/20'                     : 'text-gray-400'
   const toggleColor = isDark ? 'text-white/30 hover:text-white/60' : 'text-gray-500 hover:text-gray-800'
+  const fabBase   = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors'
+  const fabColor  = isDark
+    ? 'bg-black/50 border-white/10 text-white/50 hover:text-white/90 hover:bg-black/70'
+    : 'bg-white/80 border-black/10 text-gray-500 hover:text-gray-900 hover:bg-white'
+  const fabActive = isDark
+    ? 'bg-indigo-500/25 border-indigo-400/40 text-indigo-300 hover:bg-indigo-500/35'
+    : 'bg-indigo-500/15 border-indigo-500/30 text-indigo-600 hover:bg-indigo-500/25'
+  const searchBg  = isDark
+    ? 'bg-black/50 border-white/10 text-white/70 placeholder-white/25'
+    : 'bg-white/80 border-black/10 text-gray-700 placeholder-gray-400'
+  const recencyLabel = recencyDays === 7 ? '7d' : recencyDays === 30 ? '30d' : 'All'
 
   if (loading) {
     return (
-      <div className={`flex items-center justify-center h-screen ${isDark ? 'bg-[#07070f]' : 'bg-[#f5f4fc]'}`}>
+      <div className={`flex flex-col items-center justify-center gap-5 h-screen ${isDark ? 'bg-[#07070f]' : 'bg-[#f5f4fc]'}`}>
+        <div className="relative w-14 h-14 flex items-center justify-center">
+          <svg className="absolute inset-0 w-14 h-14 animate-spin" viewBox="0 0 56 56" fill="none" style={{ animationDuration: '1.4s' }}>
+            <circle cx="28" cy="28" r="24" stroke={isDark ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.1)'} strokeWidth="1.5" />
+            <path d="M28 4 A24 24 0 0 1 52 28" stroke="rgb(129,140,248)" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-8 h-8" />
+        </div>
         <p className={`text-sm ${isDark ? 'text-white/30' : 'text-gray-400'}`}>Loading your Crystarium…</p>
       </div>
     )
@@ -132,23 +204,107 @@ export default function GraphPage() {
           <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-8">
             <span className={`text-4xl ${isDark ? 'text-white/10' : 'text-gray-200'}`}>✦</span>
             <p className={`text-sm max-w-xs ${isDark ? 'text-white/30' : 'text-gray-400'}`}>
-              No clips yet. Install the Aetherneedle extension and start clipping pages into your Crystarium.
+              No clips yet. Install the Aetherneedle extension and start clipping pages — or add one manually.
             </p>
           </div>
         ) : (
           <KnowledgeGraph
             clips={clips}
-            onNodeClick={setSelectedClip}
+            onNodeClick={handleNodeClick}
+            onBackgroundClick={() => { setSelectedClip(null); setShowAdd(false) }}
             selectedId={selectedClip?.id ?? null}
             isDark={isDark}
+            searchQuery={searchQuery}
+            alwaysShowLabels={alwaysShowLabels}
+            recencyDays={recencyDays}
           />
         )}
       </div>
 
-      <Legend isDark={isDark} />
+      {/* Search bar — top left */}
+      <div className="absolute top-[60px] left-4 z-10">
+        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-md border text-xs ${searchBg}`}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 opacity-50">
+            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search clips…"
+            className="bg-transparent outline-none w-36"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="opacity-40 hover:opacity-80 transition-opacity leading-none text-base">
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Floating action buttons — top right */}
+      <div className="absolute top-[60px] right-4 z-10 flex flex-col gap-2 items-end">
+        <button onClick={openAdd} className={`${fabBase} ${fabColor}`}>
+          <span className="text-[13px] leading-none">✦</span>
+          Add clip
+        </button>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className={`${fabBase} ${fabColor} disabled:opacity-40`}
+          aria-label="Refresh graph"
+        >
+          <svg
+            width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            className={refreshing ? 'animate-spin' : ''}
+            style={refreshing ? { animationDuration: '0.9s' } : {}}
+          >
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+            <path d="M16 21h5v-5" />
+          </svg>
+          {refreshing ? 'Refreshing…' : 'Refresh'}
+        </button>
+
+        {/* View controls */}
+        <div className="flex gap-1.5 mt-0.5">
+          <button
+            onClick={() => setAlwaysShowLabels(v => !v)}
+            className={`${fabBase} ${alwaysShowLabels ? fabActive : fabColor}`}
+            title="Toggle always-on labels"
+          >
+            Aa
+          </button>
+          <button
+            onClick={cycleRecency}
+            className={`${fabBase} ${recencyDays ? fabActive : fabColor}`}
+            title="Filter by recency"
+          >
+            {recencyLabel}
+          </button>
+        </div>
+      </div>
+
+      <Legend clips={clips} isDark={isDark} />
 
       {selectedClip && (
-        <ClipPanel clip={selectedClip} onClose={() => setSelectedClip(null)} isDark={isDark} />
+        <ClipPanel
+          key={selectedClip.id}
+          clip={selectedClip}
+          onClose={() => setSelectedClip(null)}
+          onDelete={handleDelete}
+          isDark={isDark}
+        />
+      )}
+
+      {showAdd && (
+        <AddPanel
+          onClose={() => setShowAdd(false)}
+          onClipAdded={handleRefresh}
+          isDark={isDark}
+        />
       )}
     </div>
   )
