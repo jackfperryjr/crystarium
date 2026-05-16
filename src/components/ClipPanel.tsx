@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import type { Clip, Entities } from '@/lib/types'
 
 const ENTITY_STYLES: Record<keyof Entities, string> = {
@@ -28,10 +29,13 @@ function EntityChips({ entities }: { entities: Entities }) {
 interface Props {
   clip: Clip
   onClose: () => void
+  onDelete: (clipId: string) => void
   isDark: boolean
 }
 
-export default function ClipPanel({ clip, onClose, isDark }: Props) {
+export default function ClipPanel({ clip, onClose, onDelete, isDark }: Props) {
+  const [confirming, setConfirming] = useState(false)
+
   const hostname = (() => {
     try { return new URL(clip.url).hostname.replace(/^www\./, '') }
     catch { return clip.domain ?? '' }
@@ -48,7 +52,10 @@ export default function ClipPanel({ clip, onClose, isDark }: Props) {
   const title   = isDark ? 'text-white hover:text-indigo-300'  : 'text-gray-900 hover:text-indigo-600'
   const summary = isDark ? 'text-white/40'                 : 'text-gray-500'
   const link    = isDark ? 'text-indigo-400/50 hover:text-indigo-400' : 'text-indigo-500/60 hover:text-indigo-600'
-  const foot    = isDark ? 'text-white/20'                 : 'text-gray-300'
+  const foot       = isDark ? 'text-white/20'                       : 'text-gray-300'
+  const deleteBtn  = isDark ? 'text-white/35 hover:text-red-400/80' : 'text-gray-400 hover:text-red-500'
+  const confirmBtn = isDark ? 'text-red-400/80 hover:text-red-300'  : 'text-red-500 hover:text-red-700'
+  const cancelBtn  = isDark ? 'text-white/30 hover:text-white/60'   : 'text-gray-400 hover:text-gray-600'
 
   return (
     <div className={`absolute top-11 right-0 bottom-0 w-80 backdrop-blur-xl border-l flex flex-col z-20 overflow-hidden ${panel}`}>
@@ -102,8 +109,29 @@ export default function ClipPanel({ clip, onClose, isDark }: Props) {
       </div>
 
       {/* Footer */}
-      <div className={`px-4 py-2.5 border-t flex-shrink-0 ${divider}`}>
+      <div className={`px-4 py-2.5 border-t flex-shrink-0 flex items-center justify-between ${divider}`}>
         <p className={`text-[10px] ${foot}`}>{date}</p>
+
+        {confirming ? (
+          <div className="flex items-center gap-3">
+            <button onClick={() => setConfirming(false)} className={`text-[10px] transition-colors ${cancelBtn}`}>
+              Cancel
+            </button>
+            <button
+              onClick={() => onDelete(clip.id)}
+              className={`text-[10px] font-medium transition-colors ${confirmBtn}`}
+            >
+              Delete
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirming(true)}
+            className={`text-[10px] transition-colors ${deleteBtn}`}
+          >
+            Delete clip
+          </button>
+        )}
       </div>
     </div>
   )

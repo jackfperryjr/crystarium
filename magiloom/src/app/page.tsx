@@ -33,8 +33,6 @@ function Hero() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-violet-600/6 rounded-full blur-[80px] pointer-events-none" />
 
-      
-
       <div className="relative flex flex-col items-center text-center max-w-3xl mx-auto gap-6 md:gap-8">
         {/* Hero logo */}
         <div className="relative mt-8 md:mt-16">
@@ -42,12 +40,6 @@ function Hero() {
           <div className="animate-float" style={{ filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.5))' }}>
             <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-28 h-28 md:w-36 md:h-36 mx-auto" />
           </div>
-        </div>
-
-        {/* Eyebrow */}
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-glow-pulse" />
-          <span className="text-xs text-indigo-300 font-medium tracking-wide">Coming soon</span>
         </div>
 
         {/* Headline */}
