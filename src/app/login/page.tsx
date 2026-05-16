@@ -20,9 +20,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-8 bg-[#07070f]">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-          <span className="text-indigo-400 text-2xl">✦</span>
-        </div>
+        <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-6 h-6" />
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-white tracking-tight">Crystarium</h1>
           <p className="text-sm text-white/30 mt-1.5">Your knowledge, crystallized.</p>
