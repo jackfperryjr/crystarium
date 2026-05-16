@@ -14,6 +14,14 @@ function Nav() {
         <a href="#features" className="text-sm text-white/40 hover:text-white/80 transition-colors hidden sm:block">
           Features
         </a>
+        <a
+          href="https://crystarium.magiloom.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm px-4 py-1.5 rounded-full border border-indigo-500/40 text-indigo-300 hover:border-indigo-400 hover:text-indigo-200 transition-colors"
+        >
+          To Crystarium &rarr;
+        </a>
       </div>
     </nav>
   )
@@ -26,7 +34,17 @@ function Hero() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-violet-600/6 rounded-full blur-[80px] pointer-events-none" />
 
+      
+
       <div className="relative flex flex-col items-center text-center max-w-3xl mx-auto gap-8">
+        {/* Hero logo */}
+        <div className="relative mt-16 md:mt-20">
+          <div className="absolute inset-0 bg-indigo-500/15 blur-[80px] rounded-full" />
+          <div className="animate-float" style={{ filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.5))' }}>
+            <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-28 h-28 md:w-36 md:h-36 mx-auto" />
+          </div>
+        </div>
+
         {/* Eyebrow */}
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20">
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-glow-pulse" />
@@ -48,9 +66,8 @@ function Hero() {
 
         <div className="flex flex-col items-center gap-3">
           <a
-            href="https://github.com/jackfperryjr/aetherneedle/releases/latest"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="https://github.com/jackfperryjr/aetherneedle/releases/latest/download/aetherneedle.zip"
+            download
             className="flex items-center gap-2 px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -71,13 +88,6 @@ function Hero() {
         </div>
       </div>
 
-      {/* Hero logo */}
-      <div className="relative mt-16 md:mt-20">
-        <div className="absolute inset-0 bg-indigo-500/15 blur-[80px] rounded-full" />
-        <div className="animate-float" style={{ filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.5))' }}>
-          <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-28 h-28 md:w-36 md:h-36 mx-auto" />
-        </div>
-      </div>
     </section>
   )
 }
