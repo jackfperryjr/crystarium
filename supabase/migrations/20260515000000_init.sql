@@ -31,6 +31,12 @@ create policy "users can manage their own clips"
   with check (auth.uid() = user_id);
 
 -- ============================================================
+-- Grants
+-- ============================================================
+grant select, insert, update, delete on public.clips to service_role;
+grant select, insert, update, delete on public.clips to authenticated;
+
+-- ============================================================
 -- Indexes
 -- ============================================================
 create index clips_user_id_idx    on public.clips (user_id);
@@ -78,3 +84,5 @@ as $$
   order by embedding <=> query_embedding
   limit match_count;
 $$;
+
+grant execute on function match_clips to authenticated;
