@@ -2,7 +2,7 @@
 
 > Your second brain, rendered as a living graph. Every article, thread, and idea — connected by meaning, not by memory.
 
-Part of the **[Magiloom](https://github.com/jackfperryjr)** second-brain ecosystem alongside [Aetherneedle](#) and [Magicite](#).
+Part of the **Magiloom** second-brain ecosystem alongside [Aetherneedle](https://github.com/jackfperryjr/aetherneedle) and [Magicite](https://github.com/jackfperryjr/magicite).
 
 ---
 
