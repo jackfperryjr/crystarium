@@ -289,6 +289,15 @@ export default function GraphPage() {
 
       <Legend clips={clips} isDark={isDark} />
 
+      <a
+        href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`absolute bottom-5 left-5 z-10 text-[10px] transition-colors ${isDark ? 'text-white/20 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}
+      >
+        ♥ Support
+      </a>
+
       {selectedClip && (
         <ClipPanel
           key={selectedClip.id}
