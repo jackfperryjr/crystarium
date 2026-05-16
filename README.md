@@ -4,6 +4,13 @@
 
 Part of the **Magiloom** second-brain ecosystem alongside [Aetherneedle](https://github.com/jackfperryjr/aetherneedle) and [Magicite](https://github.com/jackfperryjr/magicite).
 
+<p align="center">
+  <img src="https://github.com/jackfperryjr/crystarium/actions/workflows/deploy-crystarium.yml/badge.svg" alt="Build Status" height="20">
+  <img src="https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" />
+  <img src="https://img.shields.io/badge/Supabase-3FC085?style=flat-square&logo=supabase&logoColor=white" alt="Supabase">
+</p>
+
 ---
 
 ## What it does
