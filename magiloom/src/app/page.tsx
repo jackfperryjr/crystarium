@@ -1,25 +1,5 @@
 import Link from 'next/link'
 
-function GemSvg({ className }: { className?: string }) {
-  return (
-    <svg viewBox="-60 -82 120 164" className={className} aria-hidden>
-      <defs>
-        <linearGradient id="gemGrad" x1="0%" y1="0%" x2="70%" y2="100%">
-          <stop offset="0%" stopColor="#a5b4fc" />
-          <stop offset="100%" stopColor="#3730a3" />
-        </linearGradient>
-      </defs>
-      <polygon
-        points="0,-75 35,-40 52.5,0 35,40 0,75 -35,40 -52.5,0 -35,-40"
-        fill="url(#gemGrad)"
-      />
-      <polygon points="0,-75 -35,-40 -52.5,0 0,0" fill="white" opacity="0.22" />
-      <polygon points="0,-75 35,-40 52.5,0 0,0" fill="white" opacity="0.09" />
-      <polygon points="-52.5,0 -35,40 0,0" fill="white" opacity="0.05" />
-    </svg>
-  )
-}
-
 function Nav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 bg-[#07070f]/80 backdrop-blur-md border-b border-white/5">
@@ -69,11 +49,11 @@ function Hero() {
         <p className="text-sm text-white/30">We&apos;re building something. Check back soon.</p>
       </div>
 
-      {/* Hero gem */}
+      {/* Hero logo */}
       <div className="relative mt-16 md:mt-20">
         <div className="absolute inset-0 bg-indigo-500/15 blur-[80px] rounded-full" />
-        <div className="animate-float" style={{ filter: 'drop-shadow(0 0 50px rgba(99,102,241,0.45))' }}>
-          <GemSvg className="w-40 h-56 md:w-52 md:h-72 mx-auto" />
+        <div className="animate-float" style={{ filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.5))' }}>
+          <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-28 h-28 md:w-36 md:h-36 mx-auto" />
         </div>
       </div>
 
@@ -111,21 +91,18 @@ function HowItWorks() {
       title: 'Clip with Aetherneedle',
       description:
         'Install our Chrome extension and browse naturally. When you find something worth keeping, click once. Aetherneedle extracts the content and sends it to your Crystarium instantly.',
-      gem: <GemSvg className="w-10 h-14" />,
     },
     {
       number: '02',
       title: 'AI reads and understands',
       description:
         'Magicite, our AI engine, reads every clip you save. Claude by Anthropic extracts key people, places, technologies, and topics. Voyage AI encodes the meaning into a semantic embedding.',
-      gem: <GemSvg className="w-10 h-14 opacity-75" />,
     },
     {
       number: '03',
       title: 'Your knowledge crystallizes',
       description:
         'Open Crystarium to see your knowledge as a living force graph. Clips cluster by meaning, not by folder. Lines form between ideas that share semantic space — connections you didn\'t know existed.',
-      gem: <GemSvg className="w-10 h-14 opacity-50" />,
     },
   ]
 
@@ -145,12 +122,7 @@ function HowItWorks() {
               key={i}
               className="relative rounded-2xl bg-white/[0.03] border border-white/8 p-7 flex flex-col gap-5 hover:border-indigo-500/25 transition-colors"
             >
-              <div className="flex items-start justify-between">
-                <span className="text-3xl font-bold text-white/8 tracking-tighter select-none">{step.number}</span>
-                <div style={{ filter: 'drop-shadow(0 0 12px rgba(99,102,241,0.5))' }}>
-                  {step.gem}
-                </div>
-              </div>
+              <span className="text-3xl font-bold text-white/8 tracking-tighter select-none">{step.number}</span>
               <div>
                 <h3 className="text-base font-semibold text-white mb-2">{step.title}</h3>
                 <p className="text-sm text-white/40 leading-relaxed">{step.description}</p>
