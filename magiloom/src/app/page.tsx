@@ -46,7 +46,29 @@ function Hero() {
           Magiloom transforms the pages you read into a living knowledge graph — automatically summarized, tagged, and connected by AI. Your second brain, alive.
         </p>
 
-        <p className="text-sm text-white/30">We&apos;re building something. Check back soon.</p>
+        <div className="flex flex-col items-center gap-3">
+          <a
+            href="https://github.com/jackfperryjr/aetherneedle/releases/latest"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download Aetherneedle
+          </a>
+          <a
+            href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-white/25 hover:text-white/50 transition-colors"
+          >
+            ♥ Support the project
+          </a>
+        </div>
       </div>
 
       {/* Hero logo */}
@@ -55,14 +77,6 @@ function Hero() {
         <div className="animate-float" style={{ filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.5))' }}>
           <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-28 h-28 md:w-36 md:h-36 mx-auto" />
         </div>
-      </div>
-
-      {/* Scroll hint */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/15">
-        <span className="text-[10px] uppercase tracking-widest">Scroll</span>
-        <svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M6 2v12M1 9l5 5 5-5" />
-        </svg>
       </div>
     </section>
   )
@@ -205,6 +219,14 @@ function Footer() {
           <span className="text-sm text-white/30 font-medium">Magiloom</span>
         </div>
         <div className="flex items-center gap-6">
+          <a
+            href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-white/25 hover:text-white/50 transition-colors"
+          >
+            ♥ Support
+          </a>
           <Link href="/privacy" className="text-xs text-white/25 hover:text-white/50 transition-colors">
             Privacy Policy
           </Link>
