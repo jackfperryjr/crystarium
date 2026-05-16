@@ -12,9 +12,15 @@ export const createClient = async () => {
           return cookieStore.getAll()
         },
         setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Called from a Server Component — cookie writes are not allowed.
+            // Sessions are validated read-only here; the auth/callback route
+            // handles token exchange and the browser client handles refresh.
+          }
         },
       },
     }
