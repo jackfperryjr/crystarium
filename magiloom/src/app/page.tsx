@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 function Nav() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-10 py-4 bg-[#07070f]/80 backdrop-blur-md border-b border-white/5">
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-10 py-3 md:py-4 bg-[#07070f]/80 backdrop-blur-md border-b border-white/5">
       <Link href="/" className="flex items-center gap-2.5">
         <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-6 h-6" />
         <span className="text-sm font-semibold tracking-tight text-white">Magiloom</span>
@@ -16,11 +16,10 @@ function Nav() {
         </a>
         <a
           href="https://crystarium.magiloom.com"
-          target="_blank"
           rel="noopener noreferrer"
           className="text-sm px-4 py-1.5 rounded-full border border-indigo-500/40 text-indigo-300 hover:border-indigo-400 hover:text-indigo-200 transition-colors"
         >
-          To Crystarium &rarr;
+          Crystarium &rarr;
         </a>
       </div>
     </nav>
@@ -29,16 +28,16 @@ function Nav() {
 
 function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-20 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center px-5 pt-20 pb-16 md:pt-24 md:pb-20 overflow-hidden">
       {/* Background glow blobs */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-violet-600/6 rounded-full blur-[80px] pointer-events-none" />
 
       
 
-      <div className="relative flex flex-col items-center text-center max-w-3xl mx-auto gap-8">
+      <div className="relative flex flex-col items-center text-center max-w-3xl mx-auto gap-6 md:gap-8">
         {/* Hero logo */}
-        <div className="relative mt-16 md:mt-20">
+        <div className="relative mt-8 md:mt-16">
           <div className="absolute inset-0 bg-indigo-500/15 blur-[80px] rounded-full" />
           <div className="animate-float" style={{ filter: 'drop-shadow(0 0 40px rgba(99,102,241,0.5))' }}>
             <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-28 h-28 md:w-36 md:h-36 mx-auto" />
@@ -52,23 +51,23 @@ function Hero() {
         </div>
 
         {/* Headline */}
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05] text-white">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight leading-[1.08] md:leading-[1.05] text-white">
           Clip the web.{' '}
-          <span className="bg-gradient-to-br from-indigo-300 via-violet-300 to-indigo-400 bg-clip-text text-transparent">
+          <span className="inline-block bg-gradient-to-br from-indigo-300 via-violet-300 to-indigo-400 bg-clip-text text-transparent">
             Crystallize
           </span>{' '}
           your knowledge.
         </h1>
 
-        <p className="text-lg md:text-xl text-white/45 leading-relaxed max-w-xl">
+        <p className="text-base md:text-lg lg:text-xl text-white/45 leading-relaxed max-w-xl">
           Magiloom transforms the pages you read into a living knowledge graph — automatically summarized, tagged, and connected by AI. Your second brain, alive.
         </p>
 
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 w-full sm:w-auto">
           <a
             href="https://github.com/jackfperryjr/aetherneedle/releases/latest/download/aetherneedle.zip"
             download
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 sm:py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -131,7 +130,7 @@ function HowItWorks() {
   ]
 
   return (
-    <section id="how-it-works" className="py-24 md:py-32 px-6">
+    <section id="how-it-works" className="py-16 md:py-24 lg:py-32 px-5 md:px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-xs text-indigo-400/70 uppercase tracking-widest mb-3">How it works</p>
@@ -140,11 +139,11 @@ function HowItWorks() {
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-4 md:gap-6">
           {steps.map((step, i) => (
             <div
               key={i}
-              className="relative rounded-2xl bg-white/[0.03] border border-white/8 p-7 flex flex-col gap-5 hover:border-indigo-500/25 transition-colors"
+              className="relative rounded-2xl bg-white/[0.03] border border-white/8 p-5 md:p-7 flex flex-col gap-4 md:gap-5 hover:border-indigo-500/25 transition-colors"
             >
               <span className="text-3xl font-bold text-white/8 tracking-tighter select-none">{step.number}</span>
               <div>
@@ -194,7 +193,7 @@ function Features() {
   ]
 
   return (
-    <section id="features" className="py-24 md:py-32 px-6">
+    <section id="features" className="py-16 md:py-24 lg:py-32 px-5 md:px-6">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-xs text-indigo-400/70 uppercase tracking-widest mb-3">Features</p>
@@ -203,11 +202,11 @@ function Features() {
           </h2>
         </div>
 
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
           {features.map((f, i) => (
             <div
               key={i}
-              className="rounded-2xl bg-white/[0.03] border border-white/8 p-6 flex flex-col gap-3 hover:border-white/12 hover:bg-white/[0.05] transition-all"
+              className="rounded-2xl bg-white/[0.03] border border-white/8 p-5 md:p-6 flex flex-col gap-3 hover:border-white/12 hover:bg-white/[0.05] transition-all"
             >
               <span className="text-xl text-indigo-400/80">{f.icon}</span>
               <h3 className="text-sm font-semibold text-white">{f.title}</h3>
@@ -222,7 +221,7 @@ function Features() {
 
 function Footer() {
   return (
-    <footer className="border-t border-white/5 py-8 px-6">
+    <footer className="border-t border-white/5 py-6 md:py-8 px-5 md:px-6">
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-5 h-5 opacity-60" />
