@@ -66,9 +66,8 @@ function Hero() {
 
         <div className="flex flex-col items-center gap-3">
           <a
-            href="https://github.com/jackfperryjr/aetherneedle/releases/latest"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="https://github.com/jackfperryjr/aetherneedle/releases/latest/download/aetherneedle.zip"
+            download
             className="flex items-center gap-2 px-6 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
