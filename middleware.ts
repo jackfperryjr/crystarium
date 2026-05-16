@@ -31,15 +31,23 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { pathname } = request.nextUrl
 
-  if (!user && pathname !== '/login' && !pathname.startsWith('/auth/')) {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+    if (!user && pathname !== '/login' && !pathname.startsWith('/auth/')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
 
-  if (user && pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url))
+    if (user && pathname === '/login') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+  } catch (err) {
+    console.error('Middleware: supabase.auth.getUser() threw', err)
+    const { pathname } = request.nextUrl
+    if (pathname !== '/login' && !pathname.startsWith('/auth/')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
   }
 
   return supabaseResponse
