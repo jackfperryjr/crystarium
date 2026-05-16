@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import type { Clip } from '@/lib/types'
 import { domainHue } from '@/lib/utils'
@@ -124,7 +124,7 @@ function Legend({ clips, isDark }: { clips: Clip[]; isDark: boolean }) {
 type View = 'graph' | 'list' | 'grid' | 'domains' | 'timeline'
 type RecencyDays = null | 7 | 30
 
-const VIEW_TABS: { id: View; Icon: () => JSX.Element; label: string }[] = [
+const VIEW_TABS: { id: View; Icon: () => React.ReactElement; label: string }[] = [
   { id: 'graph',    Icon: IconGraph,    label: 'Graph'    },
   { id: 'list',     Icon: IconList,     label: 'List'     },
   { id: 'grid',     Icon: IconGrid,     label: 'Grid'     },
