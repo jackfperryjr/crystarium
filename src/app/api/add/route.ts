@@ -5,6 +5,17 @@ function extractTitle(html: string): string {
   return m ? m[1].trim() : ''
 }
 
+function extractOgImage(html: string): string | null {
+  const m = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+    ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+  return m ? m[1] : null
+}
+
+function estimateReadingTime(text: string): number {
+  const words = text.trim().split(/\s+/).length
+  return Math.max(1, Math.round(words / 238))
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
@@ -63,6 +74,8 @@ export async function POST(req: NextRequest) {
   const raw_text = stripHtml(html)
   const domain = parsedUrl.hostname.replace(/^www\./, '')
   const favicon_url = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+  const og_image_url = extractOgImage(html)
+  const reading_time_min = estimateReadingTime(raw_text)
 
   if (!raw_text.trim()) {
     return NextResponse.json({ error: 'Page has no readable text content' }, { status: 422 })
@@ -79,7 +92,7 @@ export async function POST(req: NextRequest) {
       'Content-Type': 'application/json',
       Authorization: authHeader,
     },
-    body: JSON.stringify({ url, title, domain, favicon_url, raw_text }),
+    body: JSON.stringify({ url, title, domain, favicon_url, raw_text, og_image_url, reading_time_min }),
   })
 
   if (!magiciteRes.ok) {

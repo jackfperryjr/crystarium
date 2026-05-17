@@ -79,12 +79,16 @@ function linkEndpointId(endpoint: string | GraphNode): string {
   return typeof endpoint === 'object' ? endpoint.id : endpoint
 }
 
-const EDGE_THRESHOLD = 0.7
-
 const GEM = [
   [0, -1.5], [0.7, -0.8], [1.05, 0], [0.7, 0.8],
   [0, 1.5],  [-0.7, 0.8], [-1.05, 0], [-0.7, -0.8],
 ]
+
+function nodePhase(id: string): number {
+  let h = 0
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) | 0
+  return (Math.abs(h) % 1000) / 1000 * Math.PI * 2
+}
 
 interface Props {
   clips: Clip[]
@@ -95,11 +99,12 @@ interface Props {
   searchQuery: string
   alwaysShowLabels: boolean
   recencyDays: number | null
+  edgeThreshold: number
 }
 
 export default function KnowledgeGraph({
   clips, onNodeClick, onBackgroundClick, selectedId, isDark,
-  searchQuery, alwaysShowLabels, recencyDays,
+  searchQuery, alwaysShowLabels, recencyDays, edgeThreshold,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -149,7 +154,7 @@ export default function KnowledgeGraph({
         const b = embeddings[j]
         if (!b) continue
         const sim = cosineSimilarity(a, b)
-        if (sim >= EDGE_THRESHOLD) {
+        if (sim >= edgeThreshold) {
           links.push({ source: clips[i].id, target: clips[j].id, strength: sim })
           if (!neighborMap.has(clips[i].id)) neighborMap.set(clips[i].id, new Set())
           if (!neighborMap.has(clips[j].id)) neighborMap.set(clips[j].id, new Set())
@@ -213,7 +218,7 @@ export default function KnowledgeGraph({
           const isSelected = n.id === selectedIdRef.current
           const clip = clipMapRef.current.get(n.id)
           const hue = domainHue(n.domain)
-          const lightness = dark ? 68 : 45
+          const lightnessBase = dark ? 68 : 45
           const r = isSelected ? 7 : 4
 
           // Determine if node passes all active filters
@@ -252,17 +257,22 @@ export default function KnowledgeGraph({
             return
           }
 
+          const twinkle = (Math.sin(Date.now() / 2200 + nodePhase(n.id)) + 1) / 2
+          const lightness = Math.round(lightnessBase + twinkle * (dark ? 14 : 10))
           const color = isSelected
             ? (dark ? '#ffffff' : '#2d2060')
             : `hsl(${hue}, 65%, ${lightness}%)`
-          const glowOpacity = dark
+          const glowOpacityBase = dark
             ? (isSelected ? 0.2 : 0.12)
             : (isSelected ? 0.2 : 0.14)
+          const glowOpacity = glowOpacityBase * (0.7 + twinkle * 0.3)
+          const glowScale = 2.4 + twinkle * 0.8
+
           const glowColor = isSelected
             ? `rgba(180,160,255,${glowOpacity})`
             : `hsla(${hue}, 65%, ${lightness}%, ${glowOpacity})`
 
-          tracePoly(2.8)
+          tracePoly(glowScale)
           ctx.fillStyle = glowColor
           ctx.fill()
 
