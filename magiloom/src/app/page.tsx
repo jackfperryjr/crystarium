@@ -69,7 +69,7 @@ function Hero() {
             Download Aetherneedle
           </a>
           <a
-            href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
+            href="https://buy.stripe.com/8x23cx5QAbHk30RgBK0Fi01"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-white/25 hover:text-white/50 transition-colors"
@@ -221,7 +221,7 @@ function Footer() {
         </div>
         <div className="flex items-center gap-6">
           <a
-            href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
+            href="https://buy.stripe.com/8x23cx5QAbHk30RgBK0Fi01"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-white/25 hover:text-white/50 transition-colors"

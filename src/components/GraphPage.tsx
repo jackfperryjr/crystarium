@@ -457,7 +457,7 @@ export default function GraphPage() {
 
         {/* ── Support link (all views) ── */}
         <a
-          href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
+          href="https://buy.stripe.com/8x23cx5QAbHk30RgBK0Fi01"
           target="_blank"
           rel="noopener noreferrer"
           className={`absolute bottom-5 left-5 z-10 text-[10px] transition-colors ${isDark ? 'text-white/20 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}
