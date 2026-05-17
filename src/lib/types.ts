@@ -16,4 +16,10 @@ export interface Clip {
   entities: Entities
   embedding: number[] | string | null
   created_at: string
+  is_starred?: boolean
+  notes?: string | null
+  og_image_url?: string | null
+  reading_time_min?: number | null
+  archived_at?: string | null
+  content_type?: string
 }

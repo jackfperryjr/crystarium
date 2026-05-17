@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import type { Clip } from '@/lib/types'
 import { domainHue } from '@/lib/utils'
+import { useUserPrefs } from '@/hooks/useUserPrefs'
 import KnowledgeGraph from './KnowledgeGraph'
 import ClipPanel from './ClipPanel'
 import AddPanel from './AddPanel'
+import AnnouncementBanner from './AnnouncementBanner'
 import ListView from './ListView'
 import GridView from './GridView'
 import DomainView from './DomainView'
@@ -89,9 +91,13 @@ function GemIcon({ fill }: { fill: string }) {
 
 // ─── Domain legend (graph view only) ─────────────────────────────────────────
 
-function Legend({ clips, isDark }: { clips: Clip[]; isDark: boolean }) {
+function Legend({ clips, isDark, edgeThreshold, onChangeEdgeThreshold }: {
+  clips: Clip[]
+  isDark: boolean
+  edgeThreshold: number
+  onChangeEdgeThreshold: (v: number) => void
+}) {
   const text = isDark ? 'text-white/25' : 'text-gray-500'
-  const line = isDark ? 'border-blue-400/30' : 'border-blue-600/50'
   const lightness = isDark ? 68 : 45
 
   const domains = [...clips
@@ -101,19 +107,28 @@ function Legend({ clips, isDark }: { clips: Clip[]; isDark: boolean }) {
     .sort((a, b) => b[1] - a[1]).slice(0, 8).map(([d]) => d)
 
   return (
-    <div className="absolute bottom-5 right-5 z-10 pointer-events-none flex flex-col gap-1 items-end">
+    <div className="absolute bottom-5 right-5 z-10 flex flex-col gap-1 items-end">
       {domains.map(d => (
-        <div key={d} className={`flex items-center gap-2 ${text}`}>
+        <div key={d} className={`flex items-center gap-2 pointer-events-none ${text}`}>
           <span className="text-[10px]">{d}</span>
           <GemIcon fill={`hsl(${domainHue(d)}, 65%, ${lightness}%)`} />
         </div>
       ))}
       {domains.length > 0 && (
-        <div className="h-px w-16 my-0.5" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' }} />
+        <div className="h-px w-16 my-0.5 pointer-events-none" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' }} />
       )}
-      <div className={`flex items-center gap-2 ${text}`}>
-        <span className="text-[10px]">similarity ≥ 70%</span>
-        <span className={`w-4 border-t flex-shrink-0 ${line}`} />
+      <div className={`flex items-center gap-1.5 ${text}`}>
+        <span className="text-[10px]">≥</span>
+        <input
+          type="range"
+          min={50} max={95} step={5}
+          value={Math.round(edgeThreshold * 100)}
+          onChange={e => onChangeEdgeThreshold(Number(e.target.value) / 100)}
+          style={{ accentColor: isDark ? '#818cf8' : '#6366f1', width: '60px' }}
+          className="cursor-pointer"
+          title="Similarity threshold"
+        />
+        <span className="text-[10px] tabular-nums w-6 text-right">{Math.round(edgeThreshold * 100)}%</span>
       </div>
     </div>
   )
@@ -135,30 +150,58 @@ const VIEW_TABS: { id: View; Icon: () => React.ReactElement; label: string }[] =
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function GraphPage() {
-  const [clips, setClips]             = useState<Clip[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [refreshing, setRefreshing]   = useState(false)
+  const { prefs, updatePref } = useUserPrefs()
+  const prefsSynced = useRef(false)
+
+  const [clips, setClips]               = useState<Clip[]>([])
+  const [loading, setLoading]           = useState(true)
+  const [refreshing, setRefreshing]     = useState(false)
   const [selectedClip, setSelectedClip] = useState<Clip | null>(null)
-  const [showAdd, setShowAdd]         = useState(false)
-  const [userEmail, setUserEmail]     = useState<string | null>(null)
-  const [isDark, setIsDark]           = useState(true)
-  const [view, setView]               = useState<View>('graph')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [showAdd, setShowAdd]           = useState(false)
+  const [userEmail, setUserEmail]       = useState<string | null>(null)
+  const [isDark, setIsDark]             = useState(true)
+  const [view, setView]                 = useState<View>('graph')
+  const [searchQuery, setSearchQuery]   = useState('')
   const [alwaysShowLabels, setAlwaysShowLabels] = useState(false)
-  const [recencyDays, setRecencyDays] = useState<RecencyDays>(null)
+  const [recencyDays, setRecencyDays]   = useState<RecencyDays>(null)
+  const [edgeThreshold, setEdgeThreshold] = useState(0.7)
+
+  // Sync local state from prefs once after they load (prefs start as defaults,
+  // then the hook fills them in from the DB — watch for meaningful change)
+  useEffect(() => {
+    if (prefsSynced.current) return
+    // Only sync once we've potentially received real DB data.
+    // The hook returns DEFAULTS synchronously; we check that a non-default key
+    // differs OR that all match — in both cases we sync once.
+    prefsSynced.current = true
+
+    const { theme, default_view, always_show_labels, edge_threshold } = prefs
+
+    if (theme === 'dark') setIsDark(true)
+    else if (theme === 'light') setIsDark(false)
+    else {
+      // 'system' — honour localStorage first, then matchMedia
+      const stored = localStorage.getItem('crystarium-dark')
+      if (stored !== null) setIsDark(stored !== 'false')
+      else setIsDark(window.matchMedia('(prefers-color-scheme: dark)').matches)
+    }
+
+    if (VIEW_TABS.some(t => t.id === default_view)) setView(default_view as View)
+    setAlwaysShowLabels(always_show_labels)
+    setEdgeThreshold(edge_threshold)
+  }, [prefs])
 
   const fetchClips = async () => {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('clips')
-      .select('id, url, title, domain, favicon_url, summary, entities, embedding, created_at')
+      .select('id, url, title, domain, favicon_url, summary, entities, embedding, created_at, is_starred, notes, og_image_url, reading_time_min, archived_at, content_type')
+      .is('archived_at', null)
       .order('created_at', { ascending: false })
     if (!error && data) setClips(data as Clip[])
   }
 
   useEffect(() => {
-    const stored = localStorage.getItem('crystarium-dark')
-    if (stored !== null) setIsDark(stored !== 'false')
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => setUserEmail(user?.email ?? null))
     fetchClips().finally(() => setLoading(false))
@@ -199,7 +242,24 @@ export default function GraphPage() {
   const toggleDark = () => {
     const next = !isDark
     setIsDark(next)
+    updatePref('theme', next ? 'dark' : 'light')
     localStorage.setItem('crystarium-dark', String(next))
+  }
+
+  const changeView = (v: View) => {
+    setView(v)
+    updatePref('default_view', v)
+  }
+
+  const toggleLabels = () => {
+    const next = !alwaysShowLabels
+    setAlwaysShowLabels(next)
+    updatePref('always_show_labels', next)
+  }
+
+  const changeEdgeThreshold = (v: number) => {
+    setEdgeThreshold(v)
+    updatePref('edge_threshold', v)
   }
 
   const handleSignOut = async () => {
@@ -250,10 +310,13 @@ export default function GraphPage() {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden" style={{ background: isDark ? '#07070f' : '#f5f4fc' }}>
+    <div className="relative w-screen h-screen overflow-hidden flex flex-col" style={{ background: isDark ? '#07070f' : '#f5f4fc' }}>
+
+      {/* ── Announcement banner ── */}
+      <AnnouncementBanner isDark={isDark} />
 
       {/* ── Header ── */}
-      <header className={`absolute top-0 left-0 right-0 z-10 flex items-center gap-3 px-5 py-3 backdrop-blur-md border-b ${headerBg}`}>
+      <header className={`flex-shrink-0 flex items-center gap-3 px-5 py-3 backdrop-blur-md border-b z-10 ${headerBg}`}>
         {/* Left: brand */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <img src="/icons/android-chrome-128x128.png" alt="Magiloom" className="w-5 h-5" />
@@ -267,7 +330,7 @@ export default function GraphPage() {
           {VIEW_TABS.map(({ id, Icon, label }) => (
             <button
               key={id}
-              onClick={() => setView(id)}
+              onClick={() => changeView(id)}
               title={label}
               className={`${viewTabBase} ${view === id ? viewTabOn : viewTabOff}`}
             >
@@ -287,7 +350,7 @@ export default function GraphPage() {
       </header>
 
       {/* ── Content ── */}
-      <div className="absolute inset-0 pt-11">
+      <div className="relative flex-1 overflow-hidden">
 
         {/* Graph view */}
         {view === 'graph' && (
@@ -308,6 +371,7 @@ export default function GraphPage() {
               searchQuery={searchQuery}
               alwaysShowLabels={alwaysShowLabels}
               recencyDays={recencyDays}
+              edgeThreshold={edgeThreshold}
             />
           )
         )}
@@ -354,71 +418,71 @@ export default function GraphPage() {
             </div>
           </div>
         )}
+
+        {/* ── Graph-only floating elements ── */}
+        {view === 'graph' && (
+          <>
+            {/* Search — top left */}
+            <div className="absolute top-3 left-4 z-10">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-md border text-xs ${searchBg}`}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 opacity-50">
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                </svg>
+                <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search clips…" className="bg-transparent outline-none w-36" />
+                {searchQuery && <button onClick={() => setSearchQuery('')} className="opacity-40 hover:opacity-80 transition-opacity leading-none text-base">×</button>}
+              </div>
+            </div>
+
+            {/* FABs — top right */}
+            <div className="absolute top-3 right-4 z-10 flex flex-col gap-2 items-end">
+              <button onClick={openAdd} className={`${fabBase} ${fabColor}`}>
+                <span className="text-[13px] leading-none">✦</span>Add clip
+              </button>
+              <button onClick={handleRefresh} disabled={refreshing} className={`${fabBase} ${fabColor} disabled:opacity-40`} aria-label="Refresh">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? 'animate-spin' : ''} style={refreshing ? { animationDuration: '0.9s' } : {}}>
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 21h5v-5" />
+                </svg>
+                {refreshing ? 'Refreshing…' : 'Refresh'}
+              </button>
+              <div className="flex gap-1.5 mt-0.5">
+                <button onClick={toggleLabels} className={`${fabBase} ${alwaysShowLabels ? fabActive : fabColor}`} title="Toggle always-on labels">Aa</button>
+                <button onClick={cycleRecency} className={`${fabBase} ${recencyDays ? fabActive : fabColor}`} title="Filter by recency">{recencyLabel}</button>
+              </div>
+            </div>
+
+            <Legend clips={clips} isDark={isDark} edgeThreshold={edgeThreshold} onChangeEdgeThreshold={changeEdgeThreshold} />
+          </>
+        )}
+
+        {/* ── Support link (all views) ── */}
+        <a
+          href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`absolute bottom-5 left-5 z-10 text-[10px] transition-colors ${isDark ? 'text-white/20 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          ♥ Support
+        </a>
+
+        {/* ── Panels (all views) ── */}
+        {selectedClip && (
+          <ClipPanel
+            key={selectedClip.id}
+            clip={selectedClip}
+            onClose={() => setSelectedClip(null)}
+            onDelete={handleDelete}
+            isDark={isDark}
+          />
+        )}
+        {showAdd && (
+          <AddPanel
+            onClose={() => setShowAdd(false)}
+            onClipAdded={handleRefresh}
+            isDark={isDark}
+          />
+        )}
       </div>
-
-      {/* ── Graph-only floating elements ── */}
-      {view === 'graph' && (
-        <>
-          {/* Search — top left */}
-          <div className="absolute top-[60px] left-4 z-10">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg backdrop-blur-md border text-xs ${searchBg}`}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 opacity-50">
-                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-              </svg>
-              <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search clips…" className="bg-transparent outline-none w-36" />
-              {searchQuery && <button onClick={() => setSearchQuery('')} className="opacity-40 hover:opacity-80 transition-opacity leading-none text-base">×</button>}
-            </div>
-          </div>
-
-          {/* FABs — top right */}
-          <div className="absolute top-[60px] right-4 z-10 flex flex-col gap-2 items-end">
-            <button onClick={openAdd} className={`${fabBase} ${fabColor}`}>
-              <span className="text-[13px] leading-none">✦</span>Add clip
-            </button>
-            <button onClick={handleRefresh} disabled={refreshing} className={`${fabBase} ${fabColor} disabled:opacity-40`} aria-label="Refresh">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={refreshing ? 'animate-spin' : ''} style={refreshing ? { animationDuration: '0.9s' } : {}}>
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 21h5v-5" />
-              </svg>
-              {refreshing ? 'Refreshing…' : 'Refresh'}
-            </button>
-            <div className="flex gap-1.5 mt-0.5">
-              <button onClick={() => setAlwaysShowLabels(v => !v)} className={`${fabBase} ${alwaysShowLabels ? fabActive : fabColor}`} title="Toggle always-on labels">Aa</button>
-              <button onClick={cycleRecency} className={`${fabBase} ${recencyDays ? fabActive : fabColor}`} title="Filter by recency">{recencyLabel}</button>
-            </div>
-          </div>
-
-          <Legend clips={clips} isDark={isDark} />
-        </>
-      )}
-
-      {/* ── Support link (all views) ── */}
-      <a
-        href="https://buy.stripe.com/aFafZj7YI6n06d3fxG0Fi00"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`absolute bottom-5 left-5 z-10 text-[10px] transition-colors ${isDark ? 'text-white/20 hover:text-white/50' : 'text-gray-400 hover:text-gray-600'}`}
-      >
-        ♥ Support
-      </a>
-
-      {/* ── Panels (all views) ── */}
-      {selectedClip && (
-        <ClipPanel
-          key={selectedClip.id}
-          clip={selectedClip}
-          onClose={() => setSelectedClip(null)}
-          onDelete={handleDelete}
-          isDark={isDark}
-        />
-      )}
-      {showAdd && (
-        <AddPanel
-          onClose={() => setShowAdd(false)}
-          onClipAdded={handleRefresh}
-          isDark={isDark}
-        />
-      )}
     </div>
   )
 }
